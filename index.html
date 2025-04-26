@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Henrie Studio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background-color: #0a0a0a;
+      color: #f0f0f0;
+      line-height: 1.6;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 4rem;
+      background: transparent;
+    }
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .logo-container img {
+      height: 35px;
+      width: auto;
+    }
+    .logo-container strong {
+      font-size: 1.25rem;
+      color: #f0f0f0;
+    }
+    .hero {
+      height: calc(100vh - 60px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 1rem;
+      position: relative;
+      color: white;
+      overflow: hidden;
+    }
+    .video-carousel {
+      position: relative;
+      width: 100%;
+      max-width: 900px;
+      height: 450px;
+      margin-bottom: 3rem;
+      perspective: 1000px;
+      overflow: visible;
+    }
+    .carousel-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform 0.6s ease-in-out;
+    }
+    .carousel-slide {
+      position: absolute;
+      width: 70%;
+      height: 100%;
+      left: 15%;
+      transition: all 0.6s ease-in-out;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+    .video-label {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      right: 20px;
+      color: white;
+      text-align: left;
+      z-index: 3;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+      pointer-events: none;
+      background: rgba(227, 24, 55, 0.15);
+      backdrop-filter: blur(5px);
+      padding: 12px 15px;
+      border-radius: 8px;
+      border-left: 4px solid rgba(227, 24, 55, 0.5);
+    }
+    .video-label h3 {
+      font-size: 1.2rem;
+      margin: 0;
+      font-weight: 600;
+    }
+    .carousel-slide:hover .video-label,
+    .carousel-slide.active .video-label {
+      opacity: 1;
+    }
+    .carousel-slide:hover .play-pause-btn {
+      opacity: 1;
+    }
+    .carousel-slide.prev {
+      transform: translateX(-65%) scale(0.85) translateZ(-100px);
+      opacity: 0.4;
+      filter: brightness(0.4) blur(2px);
+      z-index: 1;
+    }
+    .carousel-slide.active {
+      transform: translateX(0) scale(1) translateZ(0);
+      opacity: 1;
+      z-index: 2;
+      filter: brightness(1) blur(0);
+    }
+    .carousel-slide.active:hover .play-pause-btn {
+      opacity: 1;
+    }
+    .carousel-slide.next {
+      transform: translateX(65%) scale(0.85) translateZ(-100px);
+      opacity: 0.4;
+      filter: brightness(0.4) blur(2px);
+      z-index: 1;
+    }
+    .carousel-slide video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #000;
+      transform: none;
+    }
+    .carousel-controls {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 3;
+      display: flex;
+      gap: 10px;
+    }
+    .carousel-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.5);
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .carousel-dot.active {
+      background: white;
+    }
+    .carousel-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 3;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 20px;
+      pointer-events: none;
+    }
+    .carousel-nav button {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      transition: all 0.3s;
+      pointer-events: auto;
+      backdrop-filter: blur(4px);
+    }
+    .carousel-nav button:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: scale(1.1);
+    }
+    .carousel-nav .nav-prev {
+      margin-right: auto;
+    }
+    .carousel-nav .nav-next {
+      margin-left: auto;
+    }
+    .hero-content {
+      position: relative;
+      z-index: 2;
+    }
+    .hero h1 {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+    .hero p {
+      font-size: 1.2rem;
+      margin-bottom: 2rem;
+    }
+    .buttons a {
+      margin: 0 1rem;
+      padding: 0.75rem 1.5rem;
+      background: #E31837;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background 0.3s;
+    }
+    .buttons a:hover {
+      background: #ff1c3d;
+    }
+    section {
+      padding: 4rem 2rem;
+      max-width: 1200px;
+      margin: auto;
+    }
+    section h2 {
+      font-size: 2rem;
+      margin-bottom: 2rem;
+      text-align: center;
+      font-weight: 700;
+    }
+    section p {
+      text-align: center;
+      margin-bottom: 3rem;
+      font-size: 1.2rem;
+      color: #cccccc;
+    }
+    .work-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+    }
+    .work-item {
+      background: #1a1a1a;
+      padding: 2rem;
+      border-radius: 8px;
+      transition: transform 0.3s;
+      text-align: center;
+    }
+    .work-item:hover {
+      transform: scale(1.02);
+    }
+    .work-item h3 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      color: #f0f0f0;
+    }
+    .work-item p {
+      color: #cccccc;
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+    }
+    .work-item a, .work-item .coming-soon {
+      color: #E31837;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: opacity 0.3s;
+      justify-content: center;
+      margin: 0 auto;
+    }
+    .work-item a:hover {
+      opacity: 0.8;
+    }
+    .work-item .coming-soon {
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+    .footer {
+      text-align: center;
+      padding: 2rem;
+      border-top: 1px solid #333;
+      font-size: 0.9rem;
+    }
+    .play-pause-btn {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 60px;
+      height: 60px;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      border-radius: 50%;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      z-index: 3;
+      opacity: 0;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .play-pause-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translate(-50%, -50%) scale(1.1);
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    section#horizon a {
+      color: #E31837;
+      text-decoration: underline;
+    }
+    nav a {
+      color: #f0f0f0;
+      text-decoration: none;
+      margin-left: 2rem;
+      font-size: 1rem;
+      transition: opacity 0.3s ease;
+    }
+    nav a:hover {
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo-container">
+      <img src="asset/henrie_studio_logo.png" alt="Henrie Studio Logo">
+      <strong><a href="https://www.henrie.ai/" style="color: #f0f0f0; text-decoration: none;">Henrie Studio</a></strong>
+    </div>
+    <nav>
+      <a href="#work" style="color: #f0f0f0; text-decoration: none; margin-left: 1rem;">Our Work</a>
+      <a href="#about" style="color: #f0f0f0; text-decoration: none; margin-left: 1rem;">About</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div class="video-carousel">
+      <div class="carousel-container">
+        <div class="carousel-slide prev">
+          <video 
+            loop 
+            playsinline 
+            preload="metadata"
+            style="width: 100%; height: 100%; object-fit: contain; background: #000;"
+            onloadeddata="handleVideoLoaded(this)"
+            onerror="handleVideoError(this)"
+            onloadstart="handleVideoLoadStart(this)"
+          >
+            <source src="https://d1urfnzriat6s6.cloudfront.net/public/assets/henries/media/Whispers_of_Freedom.webm" type="video/webm">
+            <source src="https://d1urfnzriat6s6.cloudfront.net/public/assets/henries/media/Whispers_of_Freedom.mp4" type="video/mp4">
+          </video>
+          <div class="video-loading" style="display: block; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center; z-index: 2;">
+            <div style="width: 40px; height: 40px; border: 3px solid #ffffff3d; border-top: 3px solid white; border-radius: 50%; margin: 10px auto; animation: spin 1s linear infinite;"></div>
+          </div>
+          <div class="video-label">
+            <h3>Short AI Movie: Whispers of Freedom</h3>
+          </div>
+          <button class="play-pause-btn" onclick="togglePlay(this)">▶</button>
+        </div>
+        <div class="carousel-slide active">
+          <video 
+            autoplay 
+            loop 
+            playsinline 
+            preload="auto"
+            style="width: 100%; height: 100%; object-fit: contain; background: #000;"
+            onloadeddata="handleVideoLoaded(this)"
+            src="https://d1urfnzriat6s6.cloudfront.net/public/assets/henries/media/henrie_lipsync.mp4"
+          ></video>
+          <div class="video-loading" style="display: block; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center; z-index: 2;">
+            <div style="width: 40px; height: 40px; border: 3px solid #ffffff3d; border-top: 3px solid white; border-radius: 50%; margin: 10px auto; animation: spin 1s linear infinite;"></div>
+          </div>
+          <div class="video-label">
+            <h3>Short AI Movie: Henrie Meets Gail</h3>
+          </div>
+          <button class="play-pause-btn" onclick="togglePlay(this)">⏸</button>
+        </div>
+        <div class="carousel-slide next">
+          <video 
+            loop 
+            playsinline 
+            preload="auto"
+            style="width: 100%; height: 100%; object-fit: contain; background: #000;"
+            onloadeddata="handleVideoLoaded(this)"
+            src="https://d1urfnzriat6s6.cloudfront.net/public/assets/henries/media/henrie-meet-gail.mp4"
+          ></video>
+          <div class="video-loading" style="display: block; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center; z-index: 2;">
+            <div style="width: 40px; height: 40px; border: 3px solid #ffffff3d; border-top: 3px solid white; border-radius: 50%; margin: 10px auto; animation: spin 1s linear infinite;"></div>
+          </div>
+          <div class="video-label">
+            <h3>Explanatory Video for Henrie.ai built with AI</h3>
+          </div>
+          <button class="play-pause-btn" onclick="togglePlay(this)">▶</button>
+        </div>
+      </div>
+      <div class="carousel-nav">
+        <button onclick="prevSlide()" class="nav-prev">←</button>
+        <button onclick="nextSlide()" class="nav-next">→</button>
+      </div>
+      <div class="carousel-controls">
+        <div class="carousel-dot active"></div>
+        <div class="carousel-dot"></div>
+        <div class="carousel-dot"></div>
+      </div>
+    </div>
+    <div class="hero-content">
+      <h1>Pushing Creativity Forward.</h1>
+      <p>Where Art, Tech, and AI meet to shape the future.</p>
+      <div class="buttons">
+        <a href="https://www.instagram.com/henrie.studio/" target="_blank">▸ Watch Reel</a>
+        <a href="#work">Explore Our Work</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="work">
+    <h2>Our Work</h2>
+    <div class="work-grid">
+      <div class="work-item">
+        <h3>AI Short Film</h3>
+        <p>We use AI to bring stories to life—writing, generating visuals, and shaping entire worlds with prompts and creativity.</p>
+        <a href="https://www.youtube.com/watch?v=rQOKhFmCmzs&t=12s" target="_blank">🎬 Watch it here: YouTube</a>
+      </div>
+      <div class="work-item">
+        <h3>Visual Experiment</h3>
+        <p>This is our playground. We experiment with what's possible using new tech, pushing boundaries just to see what happens.</p>
+        <a href="https://www.instagram.com/henrie.studio/" target="_blank">👀 Preview it on Instagram</a>
+      </div>
+      <div class="work-item">
+        <h3>VR World</h3>
+        <p>We're building an immersive experience from the ground up—designing a world you can walk through, explore, and feel.</p>
+        <span class="coming-soon">🚀 Coming Soon</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="about">
+    <h2>About Henrie Studio</h2>
+    <p>
+      We're a creative lab using AI, VR, and film to explore the edge of storytelling.
+      Built by artists, powered by technology.
+    </p>
+  </section>
+
+
+  <footer class="footer">
+    <p>© 2025 Henrie Studio. All rights reserved.</p>
+  </footer>
+
+  <script>
+    function initializeHLS(videoElement) {
+      if (Hls.isSupported()) {
+        const hls = new Hls({
+          maxBufferLength: 30,
+          maxMaxBufferLength: 60,
+          maxBufferSize: 60 * 1000 * 1000,
+          maxBufferHole: 0.5,
+          lowLatencyMode: true
+        });
+        
+        hls.loadSource(videoElement.src);
+        hls.attachMedia(videoElement);
+        
+        hls.on(Hls.Events.MANIFEST_PARSED, function() {
+          console.log('HLS manifest parsed successfully');
+          if (videoElement.parentElement.classList.contains('active')) {
+            videoElement.play().catch(function(error) {
+              console.log('Auto-play was prevented:', error);
+            });
+          }
+        });
+
+        hls.on(Hls.Events.ERROR, function(event, data) {
+          if (data.fatal) {
+            switch(data.type) {
+              case Hls.ErrorTypes.NETWORK_ERROR:
+                console.error('HLS network error:', data);
+                hls.startLoad();
+                break;
+              case Hls.ErrorTypes.MEDIA_ERROR:
+                console.error('HLS media error:', data);
+                hls.recoverMediaError();
+                break;
+              default:
+                console.error('HLS fatal error:', data);
+                hls.destroy();
+                break;
+            }
+          }
+        });
+      } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
+        // For Safari, which has native HLS support
+        videoElement.src = videoElement.src;
+      }
+    }
+
+    function handleVideoLoadStart(videoElement) {
+      console.log('Starting to load video:', videoElement.currentSrc || videoElement.src);
+      const loadingDiv = videoElement.parentElement.querySelector('.video-loading');
+      if (loadingDiv) {
+        loadingDiv.style.display = 'block';
+      }
+    }
+
+    function handleVideoError(videoElement) {
+      console.error('Error loading video:', videoElement.currentSrc || videoElement.src);
+      const loadingDiv = videoElement.parentElement.querySelector('.video-loading');
+      if (loadingDiv) {
+        loadingDiv.innerHTML = '<div style="color: #E31837;">Error loading video. Please try refreshing the page.</div>';
+      }
+    }
+
+    function handleVideoLoaded(videoElement) {
+      console.log('Video loaded successfully:', videoElement.currentSrc || videoElement.src);
+      videoElement.style.opacity = '1';
+      videoElement.volume = 0.25;
+      const loadingDiv = videoElement.parentElement.querySelector('.video-loading');
+      if (loadingDiv) {
+        loadingDiv.style.display = 'none';
+      }
+      
+      // If this is the active slide, play it
+      if (videoElement.parentElement.classList.contains('active')) {
+        const playPromise = videoElement.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(error => {
+            console.log('Auto-play was prevented:', error);
+            const playPauseBtn = videoElement.parentElement.querySelector('.play-pause-btn');
+            if (playPauseBtn) playPauseBtn.textContent = '▶';
+          });
+        }
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const slides = document.querySelectorAll('.carousel-slide');
+      const dots = document.querySelectorAll('.carousel-dot');
+      let currentSlide = 1; // Start with middle slide
+
+      // Set initial volume for all videos
+      slides.forEach(slide => {
+        const video = slide.querySelector('video');
+        video.volume = 0.25; // Set volume to 25%
+      });
+
+      function getSlidePosition(index) {
+        const relativePosition = index - currentSlide;
+        if (relativePosition === -1) return 'prev';
+        if (relativePosition === 0) return 'active';
+        if (relativePosition === 1) return 'next';
+        return null;
+      }
+
+      function updateSlides() {
+        // First, pause all videos and reset their buttons
+        slides.forEach(slide => {
+          const video = slide.querySelector('video');
+          const playPauseBtn = slide.querySelector('.play-pause-btn');
+          video.pause();
+          if (playPauseBtn) playPauseBtn.textContent = '▶';
+          slide.classList.remove('prev', 'active', 'next');
+        });
+
+        // Update navigation buttons visibility
+        const prevButton = document.querySelector('.carousel-nav .nav-prev');
+        const nextButton = document.querySelector('.carousel-nav .nav-next');
+        if (prevButton) prevButton.style.display = currentSlide > 0 ? 'flex' : 'none';
+        if (nextButton) nextButton.style.display = currentSlide < slides.length - 1 ? 'flex' : 'none';
+
+        // Then update the slides and play the active one
+        slides.forEach((slide, index) => {
+          const video = slide.querySelector('video');
+          const playPauseBtn = slide.querySelector('.play-pause-btn');
+          const position = getSlidePosition(index);
+          
+          if (position) {
+            slide.classList.add(position);
+            if (position === 'active') {
+              // Try to play with audio
+              const playPromise = video.play();
+              if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                  console.log('Auto-play was prevented. Please use the play button to start the video.');
+                });
+              }
+              if (playPauseBtn) playPauseBtn.textContent = '⏸';
+            }
+          }
+        });
+
+        // Update dots
+        dots.forEach((dot, index) => {
+          dot.classList.remove('active');
+          if (index === currentSlide) {
+            dot.classList.add('active');
+          }
+        });
+      }
+
+      window.togglePlay = function(button) {
+        const slide = button.parentElement;
+        const video = slide.querySelector('video');
+        
+        // If this is not the active slide, make it active
+        if (!slide.classList.contains('active')) {
+          const newIndex = Array.from(slides).indexOf(slide);
+          // Only update currentSlide if it's a valid position
+          if (newIndex >= 0 && newIndex < slides.length) {
+            currentSlide = newIndex;
+            updateSlides();
+          }
+          return;
+        }
+        
+        if (video.paused) {
+          // Try to play with audio
+          const playPromise = video.play();
+          if (playPromise !== undefined) {
+            playPromise.catch(error => {
+              console.log('Play was prevented. User interaction may be required.');
+            });
+          }
+          button.textContent = '⏸';
+        } else {
+          video.pause();
+          button.textContent = '▶';
+        }
+      };
+
+      window.prevSlide = function() {
+        if (currentSlide > 0) {
+          currentSlide--;
+          updateSlides();
+        }
+      };
+
+      window.nextSlide = function() {
+        if (currentSlide < slides.length - 1) {
+          currentSlide++;
+          updateSlides();
+        }
+      };
+
+      // Add click events to dots
+      dots.forEach((dot, index) => {
+        dot.addEventListener('click', () => {
+          if (index >= 0 && index < slides.length) {
+            currentSlide = index;
+            updateSlides();
+          }
+        });
+      });
+
+      // Initial setup
+      updateSlides();
+    });
+  </script>
+</body>
+</html>
